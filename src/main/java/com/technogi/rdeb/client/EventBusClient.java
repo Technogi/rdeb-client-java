@@ -1,6 +1,6 @@
 package com.technogi.rdeb.client;
 
-public class Client {
+public class EventBusClient {
   void connect(Config config){}
 
   void emit(Event event){}
