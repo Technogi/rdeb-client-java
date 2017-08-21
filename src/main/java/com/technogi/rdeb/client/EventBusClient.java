@@ -1,11 +1,11 @@
 package com.technogi.rdeb.client;
 
 public class EventBusClient {
-  void connect(Config config){}
+  public void connect(Config config){}
 
-  void emit(Event event){}
+  public void emit(Event event){}
 
-  void broadcast(Event event){}
+  public void broadcast(Event event){}
 
-  void subscribe(String id){}
+  public void subscribe(String id){}
 }
