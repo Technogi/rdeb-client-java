@@ -55,6 +55,7 @@ public class EventBusClient {
   }
 
   public void broadcast(Event event) {
+
   }
 
   public void subscribe(String id, EventHandler eventHandler) {
