@@ -35,7 +35,7 @@ public class EventBusClientImpl implements EventBusClient {
           .header(Constants.HTTP_CLIENT_HEADER, config.getClientId())
           .asObject(Event.class);
       if (resp.getStatus() == 200) {
-        Arrays.stream(eventHandlerMap.get(resp.getBody().getId())).forEach(handler -> {
+        Arrays.stream(eventHandlerMap.get(resp.getBody().getType())).forEach(handler -> {
           handler.apply(resp.getBody(), null);
         });
       }

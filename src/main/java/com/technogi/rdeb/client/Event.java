@@ -5,15 +5,15 @@ import java.util.Properties;
 
 public class Event implements Serializable{
 
-  private String id;
+  private String type;
   private Properties props = new Properties();
 
-  public String getId() {
-    return id;
+  public String getType() {
+    return type;
   }
 
-  public Event setId(String id) {
-    this.id = id;
+  public Event setType(String type) {
+    this.type = type;
     return this;
   }
 
