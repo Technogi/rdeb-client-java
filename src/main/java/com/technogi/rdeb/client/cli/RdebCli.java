@@ -94,7 +94,7 @@ public class RdebCli {
           put("label", UUID.randomUUID().toString());
           put("value", new Random(System.currentTimeMillis()).nextInt()+"");
         }});
-    client.emit(e);
+    client.publish(e);
   }
 
   static void subscribe(EventBusClient client, String type){

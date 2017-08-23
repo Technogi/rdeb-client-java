@@ -73,7 +73,7 @@ public class EventBusClientImpl implements EventBusClient {
   }
 
   @Override
-  public void emit(Event event) {
+  public void publish(Event event) {
     log.trace("Emitting event {}", event);
     httpClient.postEvent(config.getConnectionUrl(), event);
   }

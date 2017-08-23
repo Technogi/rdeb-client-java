@@ -7,7 +7,7 @@ public interface EventBusClient {
 
   void stop();
 
-  void emit(Event event);
+  void publish(Event event);
 
   void broadcast(Event event);
 
