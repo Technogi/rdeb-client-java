@@ -25,4 +25,12 @@ public class Event implements Serializable{
     this.props = props;
     return this;
   }
+
+  @Override
+  public String toString() {
+    return "Event{" +
+        "type='" + type + '\'' +
+        ", props=" + props +
+        '}';
+  }
 }

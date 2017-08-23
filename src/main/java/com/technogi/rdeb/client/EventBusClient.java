@@ -5,6 +5,8 @@ public interface EventBusClient {
 
   void start();
 
+  void stop();
+
   void emit(Event event);
 
   void broadcast(Event event);

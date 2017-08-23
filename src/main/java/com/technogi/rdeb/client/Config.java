@@ -41,4 +41,14 @@ public class Config {
     this.clientId = clientId;
     return this;
   }
+
+  @Override
+  public String toString() {
+    return "Config{" +
+        "pollingTime=" + pollingTime +
+        ", connectionUrl='" + connectionUrl + '\'' +
+        ", poolSize=" + poolSize +
+        ", clientId='" + clientId + '\'' +
+        '}';
+  }
 }

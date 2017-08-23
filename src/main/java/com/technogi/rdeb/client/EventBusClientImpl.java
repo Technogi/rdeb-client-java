@@ -1,60 +1,81 @@
 package com.technogi.rdeb.client;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
-import org.apache.commons.lang3.ArrayUtils;
 
-import java.util.Arrays;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class EventBusClientImpl implements EventBusClient {
 
-  private ScheduledThreadPoolExecutor executor;
-  private Config config;
-  private Map<String, EventHandler[]> eventHandlerMap = Collections.synchronizedMap(new HashMap<>());
+  private final Logger log = LogManager.getLogger(EventBusClientImpl.class);
+
+  ScheduledThreadPoolExecutor executor;
+  Config config;
+  Map<String, EventHandler[]> eventHandlerMap = Collections.synchronizedMap(new HashMap<>());
+  private boolean active = false;
+  private AtomicLong executionCounter = new AtomicLong();
+  private HttpClient httpClient = new HttpClient();
 
   @Override
   public void connect(Config config) {
+    log.debug("Connecting to {}", config.getConnectionUrl());
     this.config = config;
+    executor = new ScheduledThreadPoolExecutor(config.getPoolSize());
   }
 
   @Override
   public void start() {
-    executor = new ScheduledThreadPoolExecutor(config.getPoolSize());
+    log.info("Starting event bus client");
+    active = true;
     execute();
   }
 
+  @Override
+  public void stop() {
+    log.info("Stopping event bus client");
+    active = false;
+  }
+
   private void execute() {
-    try {
-      HttpResponse<Event> resp = Unirest.get(config.getConnectionUrl())
-          .header(Constants.HTTP_CLIENT_HEADER, config.getClientId())
-          .asObject(Event.class);
-      if (resp.getStatus() == 200) {
-        Arrays.stream(eventHandlerMap.get(resp.getBody().getType())).forEach(handler -> {
-          handler.apply(resp.getBody(), null);
-        });
+    executionCounter.incrementAndGet();
+    Event event = httpClient.loadNextEvent(config.getConnectionUrl(), config.getClientId());
+    if (event != null && eventHandlerMap != null) {
+      EventHandler[] handlers = eventHandlerMap.get(event.getType());
+      if (handlers != null && handlers.length > 0) {
+        for (EventHandler handler : handlers) {
+          handler.apply(event, null);
+        }
       }
-    } catch (UnirestException e) {
-      e.printStackTrace();
     }
-    executor.schedule(this::execute, config.getPollingTime(), TimeUnit.SECONDS);
+    if (event == null)
+      executor.schedule(this::execute, config.getPollingTime(), TimeUnit.SECONDS);
+    else execute();
+  }
+
+
+  public boolean isActive() {
+    return active;
+  }
+
+  public Config getConfig() {
+    return config;
+  }
+
+  public Long getNumberOfExecutions() {
+    return executionCounter.get();
   }
 
   @Override
   public void emit(Event event) {
-    try {
-      Unirest.post(config.getConnectionUrl())
-          .header(Constants.HTTP_CLIENT_HEADER, config.getClientId())
-          .body(event)
-          .asJson();
-    } catch (UnirestException e) {
-      e.printStackTrace();
-    }
+    log.trace("Emitting event {}", event);
+    httpClient.postEvent(config.getConnectionUrl(), event);
   }
 
   @Override
