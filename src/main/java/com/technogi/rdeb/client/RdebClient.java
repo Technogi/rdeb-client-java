@@ -1,6 +1,10 @@
 package com.technogi.rdeb.client;
 
-public interface EventBusClient {
+public interface RdebClient {
+
+  default RdebClient create(){
+    return new RdebClientImpl();
+  }
   void connect(Config config);
 
   void start();

@@ -1,7 +1,6 @@
 package com.technogi.rdeb.client;
 
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,9 +11,9 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class EventBusClientImpl implements EventBusClient {
+public class RdebClientImpl implements RdebClient {
 
-  private final Logger log = LogManager.getLogger(EventBusClientImpl.class);
+  private final Logger log = LogManager.getLogger(RdebClientImpl.class);
 
   ScheduledThreadPoolExecutor executor;
   Config config;
@@ -50,7 +49,7 @@ public class EventBusClientImpl implements EventBusClient {
       EventHandler[] handlers = eventHandlerMap.get(event.getType());
       if (handlers != null && handlers.length > 0) {
         for (EventHandler handler : handlers) {
-          handler.apply(event, null);
+          handler.apply(event);
         }
       }
     }
@@ -86,9 +85,16 @@ public class EventBusClientImpl implements EventBusClient {
   @Override
   public void subscribe(String id, EventHandler eventHandler) {
     if (eventHandlerMap.containsKey(id)) {
-      eventHandlerMap.put(id, ArrayUtils.add(eventHandlerMap.get(id), eventHandler));
+      eventHandlerMap.put(id, appendArray(eventHandler, eventHandlerMap.get(id)));
     } else {
       eventHandlerMap.put(id, new EventHandler[]{eventHandler});
     }
+  }
+
+  private EventHandler[] appendArray(EventHandler event, EventHandler[] events) {
+    EventHandler[] newEvents = new EventHandler[events.length + 1];
+    System.arraycopy(events, 0, newEvents, 0, events.length);
+    newEvents[events.length] = event;
+    return newEvents;
   }
 }

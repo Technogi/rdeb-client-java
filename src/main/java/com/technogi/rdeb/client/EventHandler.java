@@ -3,5 +3,5 @@ package com.technogi.rdeb.client;
 @FunctionalInterface
 public interface EventHandler {
 
-  void apply(Event event, Throwable error);
+  void apply(Event event);
 }

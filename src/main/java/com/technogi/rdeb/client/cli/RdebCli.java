@@ -17,9 +17,9 @@ public class RdebCli {
     msg("Starting RDEB Cli cli");
 
     Scanner scanner = new Scanner(System.in);
-    EventBusClient client = null;
+    RdebClient client = null;
     String cmd = "";
-    boolean verbose = LogManager.getLogger(EventBusClient.class).isTraceEnabled();
+    boolean verbose = LogManager.getLogger(RdebClient.class).isTraceEnabled();
     if (verbose) msg("Verbose mode is ON");
     while (!cmd.trim().toLowerCase().equals("q")) {
       System.out.print("> ");
@@ -32,19 +32,19 @@ public class RdebCli {
           if (client == null) {
             msg("Client not initialized");
           } else {
-            msg("Connected to: " + ((EventBusClientImpl) client).getConfig().getConnectionUrl());
-            msg("Status:       " + (((EventBusClientImpl) client).isActive() ? "ACTIVE" : "INACTIVE"));
-            msg("Executions:   " + ((EventBusClientImpl) client).getNumberOfExecutions());
+            msg("Connected to: " + ((RdebClientImpl) client).getConfig().getConnectionUrl());
+            msg("Status:       " + (((RdebClientImpl) client).isActive() ? "ACTIVE" : "INACTIVE"));
+            msg("Executions:   " + ((RdebClientImpl) client).getNumberOfExecutions());
           }
           break;
         case "verbose":
         case "v":
           if (!verbose) {
-            Configurator.setLevel(EventBusClientImpl.class.getCanonicalName(), Level.ALL);
+            Configurator.setLevel(RdebClientImpl.class.getCanonicalName(), Level.ALL);
             verbose = true;
             msg("Verbose mode is ON");
           } else {
-            Configurator.setLevel(EventBusClientImpl.class.getCanonicalName(), Level.DEBUG);
+            Configurator.setLevel(RdebClientImpl.class.getCanonicalName(), Level.DEBUG);
             verbose = false;
             msg("Verbose mode is OFF");
           }
@@ -87,7 +87,7 @@ public class RdebCli {
     System.out.println(o);
   }
 
-  static void publish(EventBusClient client, String type) {
+  static void publish(RdebClient client, String type) {
     Event e = new Event()
         .setType(type)
         .setProps(new Properties() {{
@@ -97,23 +97,23 @@ public class RdebCli {
     client.publish(e);
   }
 
-  static void subscribe(EventBusClient client, String type){
+  static void subscribe(RdebClient client, String type){
     String listenerId = UUID.randomUUID().toString();
     msg("Subscribing to channel "+type +" with id "+listenerId);
-    client.subscribe(type, (event, error) -> {
+    client.subscribe(type, (event) -> {
       msg("GOT event on listener "+listenerId);
       msg(event);
     });
   }
 
-  static EventBusClient connect() {
+  static RdebClient connect() {
     Config config = new Config()
         .setClientId("rdeb-cli")
         .setConnectionUrl("http://localhost:8080/")
         .setPollingTime(1)
         .setPoolSize(2);
 
-    EventBusClient client = new EventBusClientImpl();
+    RdebClient client = new RdebClientImpl();
     client.connect(config);
 
     return client;
