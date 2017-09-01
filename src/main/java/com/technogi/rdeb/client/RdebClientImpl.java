@@ -15,6 +15,7 @@ public class RdebClientImpl implements RdebClient {
 
   private final Logger log = LogManager.getLogger(RdebClientImpl.class);
 
+  private ErrorEventHandler errorEventHandler = null;
   ScheduledThreadPoolExecutor executor;
   Config config;
   Map<String, EventHandler[]> eventHandlerMap = Collections.synchronizedMap(new HashMap<>());
@@ -43,19 +44,26 @@ public class RdebClientImpl implements RdebClient {
   }
 
   private void execute() {
-    executionCounter.incrementAndGet();
-    Event event = httpClient.loadNextEvent(config.getConnectionUrl(), config.getClientId());
-    if (event != null && eventHandlerMap != null) {
-      EventHandler[] handlers = eventHandlerMap.get(event.getType());
-      if (handlers != null && handlers.length > 0) {
-        for (EventHandler handler : handlers) {
-          handler.apply(event);
+    try {
+      executionCounter.incrementAndGet();
+      Event event = httpClient.loadNextEvent(config.getConnectionUrl(), config.getClientId());
+      if (event != null && eventHandlerMap != null) {
+        EventHandler[] handlers = eventHandlerMap.get(event.getType());
+        if (handlers != null && handlers.length > 0) {
+          for (EventHandler handler : handlers) {
+            handler.apply(event);
+          }
         }
       }
-    }
-    if (event == null)
+      if (event == null)
+        executor.schedule(this::execute, config.getPollingTime(), TimeUnit.SECONDS);
+      else execute();
+    } catch (Throwable t) {
+      if (errorEventHandler != null) errorEventHandler.apply(t);
+      else
+        log.error("Error while porcessing a message", t);
       executor.schedule(this::execute, config.getPollingTime(), TimeUnit.SECONDS);
-    else execute();
+    }
   }
 
 
@@ -89,6 +97,10 @@ public class RdebClientImpl implements RdebClient {
     } else {
       eventHandlerMap.put(id, new EventHandler[]{eventHandler});
     }
+  }
+
+  public void onError(ErrorEventHandler handler) {
+    this.errorEventHandler = handler;
   }
 
   private EventHandler[] appendArray(EventHandler event, EventHandler[] events) {

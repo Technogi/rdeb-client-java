@@ -1,5 +1,5 @@
 group 'com.technogi'
-version '0.0.14'
+version '0.0.16'
 
 buildscript {
   repositories {
@@ -30,3 +30,28 @@ dependencies {
 
   testCompile 'junit:junit:4.12'
 }
+
+task('increment') {
+  doLast {
+    def v = buildFile.getText().find(version) //get this build file's text and extract the version value
+    String minor = v.substring(v.lastIndexOf('.') + 1)
+    int m = 1 + minor.toInteger()
+    String major = v.substring(0, v.length() - minor.size())
+    String s = buildFile.getText().replaceFirst("version = '$version'", "version = '" + major + m + "'")
+    buildFile.setText(s)
+  }
+}
+
+task release(type: Exec) {
+
+  //commandLine = "git add --all"
+  commandLine = ['sh', '-c', "git add --all && git commit -am ${version} && git tag -a '${version}' -m 'Version $version'"]
+
+  //ext.output = {
+  //    println(standardOutput.toString())
+  //    return standardOutput.toString()
+  //}
+}
+
+
+release.dependsOn('clean','increment', 'build')
