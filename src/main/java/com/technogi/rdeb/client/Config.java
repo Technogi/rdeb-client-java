@@ -1,10 +1,13 @@
 package com.technogi.rdeb.client;
 
+import java.util.Properties;
+
 public class Config {
   private int pollingTime = 5;
   private String connectionUrl;
   private int poolSize = Runtime.getRuntime().availableProcessors()*2;
   private String clientId;
+  private Properties props = new Properties();
 
   public int getPollingTime() {
     return pollingTime;
@@ -39,6 +42,15 @@ public class Config {
 
   public Config setClientId(String clientId) {
     this.clientId = clientId;
+    return this;
+  }
+
+  public Properties getProps() {
+    return props;
+  }
+
+  public Config setProps(Properties props) {
+    this.props = props;
     return this;
   }
 

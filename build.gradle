@@ -1,5 +1,5 @@
 group 'com.technogi'
-version '0.2.5'
+version '0.3.0'
 
 buildscript {
   repositories {
@@ -33,10 +33,10 @@ dependencies {
 
 task('increment') {
   doLast {
-    def v = buildFile.getText().find(version) //get this build file's text and extract the version value
-    String minor = v.substring(v.lastIndexOf('.') + 1)
+    def v = buildFile.getText().find(version as CharSequence) //get this build file's text and extract the version value
+    def minor = v.substring(v.lastIndexOf('.') + 1)
     int m = 1 + minor.toInteger()
-    String major = v.substring(0, v.length() - minor.size())
+    def major = v.substring(0, v.length() - minor.size())
     String s = buildFile.getText().replaceFirst("version = '$version'", "version = '" + major + m + "'")
     buildFile.setText(s)
   }
